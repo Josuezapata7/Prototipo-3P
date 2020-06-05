@@ -300,8 +300,8 @@ public class Home extends javax.swing.JFrame {
 
                 txt_Contraseña.setText("");
                 txt_Correo.setText("");
-               //Registrarse1 ventana = new  Registrarse1();
-               //ventana.setVisible(true);
+               Home ventana = new  Home();
+               ventana.setVisible(true);
                this.dispose();
 
             }catch (Exception e)
