@@ -17,14 +17,41 @@ import javax.swing.table.DefaultTableModel;
  * @author Langas
  */
 public class MantenimientoAula extends javax.swing.JInternalFrame {
+String[] NombresColumnasAulas = {"codigo_aula" ,"nombre_aula" ,"estatus_aula"};
     /**
      * Creates new form MantenimientoAula
      */
     public MantenimientoAula() {
         initComponents();
+        MostrarDB("aulas");
     }
 public void MostrarDB(String Tabla) {
-     
+        String[] columnas = new String[3];
+        String query;
+        try {
+
+            Connection c = DriverManager.getConnection(Home.BD,Home.Usuario,Home.Contraseña);
+           
+                query = "SELECT * FROM " + Tabla;
+           
+
+            PreparedStatement consulta = c.prepareStatement(query);
+            ResultSet resultado = consulta.executeQuery();
+            DefaultTableModel md = new DefaultTableModel(null, NombresColumnasAulas);
+
+            while (resultado.next()) {
+                for (int i = 0; i < 3; i++) {
+                    columnas[i] = resultado.getString(NombresColumnasAulas[i]);
+                }
+                md.addRow(columnas);
+
+            }
+            tblAulas.setModel(md);
+
+        } catch (Exception err) {
+            err.printStackTrace();
+        }
+
     }
     /**
      * This method is called from within the constructor to initialize the form.
@@ -203,27 +230,117 @@ public void MostrarDB(String Tabla) {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnModificarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnModificarActionPerformed
-   
+        try {
+            String codigo = txtbuscado.getText().trim();
+
+            Connection cn = DriverManager.getConnection(Home.BD,Home.Usuario,Home.Contraseña);
+            PreparedStatement pst = cn.prepareStatement("update aulas set nombre_aula = ? ,estatus_aula= ?  where codigo_aula = " + codigo);
+
+            pst.setString(1, txt_nombre.getText().trim());
+            pst.setString(2, txt_estatus.getText().trim());
+            pst.executeUpdate();
+ MostrarDB("aulas");
+            JOptionPane.showMessageDialog(this, "MODIFICACION EXITOSA.", "Exito", JOptionPane.INFORMATION_MESSAGE);
+
+            btnEliminar.setEnabled(false);
+            btnModificar.setEnabled(false);
+            txt_estatus.setEnabled(false);
+
+            txt_id.setText("");
+            txt_nombre.setText("");
+            txt_estatus.setText("");
+            txtbuscado.setText("");
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "NO SE PUDO MODIFICAR.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+
         // TODO add your handling code here:
     }//GEN-LAST:event_btnModificarActionPerformed
 
     private void btnRegistrarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRegistrarActionPerformed
 
+        try{
+            Connection cn = DriverManager.getConnection(Home.BD,Home.Usuario,Home.Contraseña);
+            PreparedStatement pst = cn.prepareStatement("insert into aulas values(?,?,?)");
 
+            pst.setString(1, txt_id.getText().trim());
+            pst.setString(2, txt_nombre.getText().trim());
+            pst.setString(3, "A");
+
+            pst.executeUpdate();
+ MostrarDB("aulas");
+            JOptionPane.showMessageDialog(this, "¡REGISTRO EXITOSO!", "Mensaje", JOptionPane.INFORMATION_MESSAGE);
+
+            txt_id.setText("");
+            txt_nombre.setText("");
+            
+
+        }catch (Exception e){
+            JOptionPane.showMessageDialog(this, "¡REGITRO FALLIDO!", "Error", JOptionPane.ERROR_MESSAGE);
+
+        }
 
         // TODO add your handling code here:
     }//GEN-LAST:event_btnRegistrarActionPerformed
 
     private void btnBuscarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBuscarActionPerformed
- 
+        String buscar = txtbuscado.getText().trim();
+        if(buscar.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "¡No se ingreso el campo de busqueda!", "Advertencia", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        try{
+            Connection cn = DriverManager.getConnection(Home.BD,Home.Usuario,Home.Contraseña);
+            PreparedStatement pst = cn.prepareStatement("select * from aulas where codigo_aula = ?");
+            pst.setString(1, txtbuscado.getText().trim());
 
-      
+            ResultSet rs = pst.executeQuery();
+
+            if(rs.next()){
+                txt_id.setText(rs.getString("codigo_aula"));
+                txt_nombre.setText(rs.getString("nombre_aula"));
+                txt_estatus.setText(rs.getString("estatus_aula"));
+
+                btnEliminar.setEnabled(true);
+                btnModificar.setEnabled(true);
+                txt_estatus.setEnabled(true);
+
+            } else {
+                JOptionPane.showMessageDialog(null, "Aula no registrado.");
+            }
+
+        }catch (Exception e){
+
+        }
+
         // TODO add your handling code here:
     }//GEN-LAST:event_btnBuscarActionPerformed
 
     private void btnEliminarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEliminarActionPerformed
-        
-     
+        try {
+            Connection cn = DriverManager.getConnection(Home.BD,Home.Usuario,Home.Contraseña);
+            PreparedStatement pst = cn.prepareStatement("delete from aulas where codigo_aula = ?");
+
+            pst.setString(1, txtbuscado.getText().trim());
+            pst.executeUpdate();
+ MostrarDB("aulas");
+            txtbuscado.setText("");
+
+            JOptionPane.showMessageDialog(this, "REGISTRO ELIMINADO.", "Exito", JOptionPane.INFORMATION_MESSAGE);
+            btnEliminar.setEnabled(false);
+            btnModificar.setEnabled(false);
+            txt_estatus.setEnabled(false);
+
+            txt_id.setText("");
+            txt_nombre.setText("");
+            txt_estatus.setText("");
+            
+            txtbuscado.setText("");
+
+        }catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error en la eliminación de registros.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
 
         // TODO add your handling code here:
     }//GEN-LAST:event_btnEliminarActionPerformed

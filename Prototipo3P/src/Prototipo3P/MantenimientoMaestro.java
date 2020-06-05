@@ -18,9 +18,39 @@ import javax.swing.table.DefaultTableModel;
  */
 public class MantenimientoMaestro extends javax.swing.JInternalFrame {
 
+    String[] NombresColumnasMaestros = {"codigo_maestro", "nombre_maestro", "direccion_maestro", "telefono_maetro", "email_maestro", "estatus_maestro"};
+
+    public void MostrarDB(String Tabla) {
+        String[] columnas = new String[6];
+        String query;
+        try {
+
+            Connection c = DriverManager.getConnection(Home.BD, Home.Usuario, Home.Contraseña);
+
+            query = "SELECT * FROM " + Tabla;
+
+            PreparedStatement consulta = c.prepareStatement(query);
+            ResultSet resultado = consulta.executeQuery();
+            DefaultTableModel md = new DefaultTableModel(null, NombresColumnasMaestros);
+
+            while (resultado.next()) {
+                for (int i = 0; i < 6; i++) {
+                    columnas[i] = resultado.getString(NombresColumnasMaestros[i]);
+                }
+                md.addRow(columnas);
+
+            }
+            tblMaestros.setModel(md);
+
+        } catch (Exception err) {
+            err.printStackTrace();
+        }
+
+    }
+
     public MantenimientoMaestro() {
         initComponents();
-        
+        MostrarDB("maestros");
     }
 
     /**
@@ -254,26 +284,130 @@ public class MantenimientoMaestro extends javax.swing.JInternalFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnModificarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnModificarActionPerformed
+        try {
+            String codigo = txtbuscado.getText().trim();
 
+            Connection cn = DriverManager.getConnection(Home.BD, Home.Usuario, Home.Contraseña);
+            PreparedStatement pst = cn.prepareStatement("update maestros set nombre_maestro = ? , direccion_maestro= ? , telefono_maetro=? , email_maestro= ?, estatus_maestro= ?  where codigo_maestro = " + codigo);
+
+            pst.setString(1, txt_nombre.getText().trim());
+            pst.setString(2, txt_direccion.getText().trim());
+            pst.setString(3, txt_tel.getText().trim());
+            pst.setString(4, txt_email.getText().trim());
+            pst.setString(5, txt_estatus.getText().trim());
+            pst.executeUpdate();
+            MostrarDB("maestros");
+            JOptionPane.showMessageDialog(this, "MODIFICACION EXITOSA.", "Exito", JOptionPane.INFORMATION_MESSAGE);
+
+            btnEliminar.setEnabled(false);
+            btnModificar.setEnabled(false);
+            txt_estatus.setEnabled(false);
+
+            txt_id.setText("");
+            txt_nombre.setText("");
+            txt_direccion.setText("");
+            txt_tel.setText("");
+            txt_email.setText("");
+            txt_estatus.setText("");
+            txtbuscado.setText("");
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "NO SE PUDO MODIFICAR.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
 
         // TODO add your handling code here:
     }//GEN-LAST:event_btnModificarActionPerformed
 
     private void btnRegistrarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRegistrarActionPerformed
 
- 
+        try {
+            Connection cn = DriverManager.getConnection(Home.BD, Home.Usuario, Home.Contraseña);
+            PreparedStatement pst = cn.prepareStatement("insert into maestros values(?,?,?,?,?,?)");
+
+            pst.setString(1, txt_id.getText().trim());
+            pst.setString(2, txt_nombre.getText().trim());
+            pst.setString(3, txt_direccion.getText().trim());
+            pst.setString(4, txt_tel.getText().trim());
+            pst.setString(5, txt_email.getText().trim());
+            pst.setString(6, "A");
+            pst.executeUpdate();
+            MostrarDB("maestros");
+            JOptionPane.showMessageDialog(this, "¡REGISTRO EXITOSO!", "Mensaje", JOptionPane.INFORMATION_MESSAGE);
+
+            txt_id.setText("");
+            txt_nombre.setText("");
+            txt_direccion.setText("");
+            txt_tel.setText("");
+            txt_email.setText("");
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "¡REGITRO FALLIDO!", "Error", JOptionPane.ERROR_MESSAGE);
+
+        }
 
         // TODO add your handling code here:
     }//GEN-LAST:event_btnRegistrarActionPerformed
 
     private void btnBuscarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBuscarActionPerformed
+        String buscar = txtbuscado.getText().trim();
+        if (buscar.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "¡No se ingreso el campo de busqueda!", "Advertencia", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        try {
+            Connection cn = DriverManager.getConnection(Home.BD, Home.Usuario, Home.Contraseña);
+            PreparedStatement pst = cn.prepareStatement("select * from maestros where codigo_maestro = ?");
+            pst.setString(1, txtbuscado.getText().trim());
 
+            ResultSet rs = pst.executeQuery();
+
+            if (rs.next()) {
+                txt_id.setText(rs.getString("codigo_maestro"));
+                txt_nombre.setText(rs.getString("nombre_maestro"));
+                txt_direccion.setText(rs.getString("direccion_maestro"));
+                txt_tel.setText(rs.getString("telefono_maetro"));
+                txt_email.setText(rs.getString("email_maestro"));
+                txt_estatus.setText(rs.getString("estatus_maestro"));
+
+                btnEliminar.setEnabled(true);
+                btnModificar.setEnabled(true);
+                txt_estatus.setEnabled(true);
+
+            } else {
+                JOptionPane.showMessageDialog(null, "Alumno no registrado.");
+            }
+
+        } catch (Exception e) {
+
+        }
 
         // TODO add your handling code here:
     }//GEN-LAST:event_btnBuscarActionPerformed
 
     private void btnEliminarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEliminarActionPerformed
-  
+        try {
+            Connection cn = DriverManager.getConnection(Home.BD, Home.Usuario, Home.Contraseña);
+            PreparedStatement pst = cn.prepareStatement("delete from maestros where codigo_maestro = ?");
+
+            pst.setString(1, txtbuscado.getText().trim());
+            pst.executeUpdate();
+            MostrarDB("maestros");
+            txtbuscado.setText("");
+
+            JOptionPane.showMessageDialog(this, "REGISTRO ELIMINADO.", "Exito", JOptionPane.INFORMATION_MESSAGE);
+            btnEliminar.setEnabled(false);
+            btnModificar.setEnabled(false);
+
+            txt_id.setText("");
+            txt_nombre.setText("");
+            txt_direccion.setText("");
+            txt_tel.setText("");
+            txt_email.setText("");
+            txtbuscado.setText("");
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error en la eliminación de registros.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
 
         // TODO add your handling code here:
     }//GEN-LAST:event_btnEliminarActionPerformed
@@ -283,12 +417,23 @@ public class MantenimientoMaestro extends javax.swing.JInternalFrame {
     }//GEN-LAST:event_tblMaestrosMouseClicked
 
     private void txt_nombreKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txt_nombreKeyTyped
-
+char validar = evt.getKeyChar();
+        if (Character.isDigit(validar)) {
+            getToolkit().beep();
+            evt.consume();
+             JOptionPane.showMessageDialog(rootPane, "Ingrese solo letras");
+        }
         // TODO add your handling code here:
     }//GEN-LAST:event_txt_nombreKeyTyped
 
     private void txt_telKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txt_telKeyTyped
+char validar = evt.getKeyChar();
+        if (Character.isLetter(validar)) {
+            getToolkit().beep();
+            evt.consume();
 
+            JOptionPane.showMessageDialog(rootPane, "Ingrese solo numeros");
+        }
         // TODO add your handling code here:
     }//GEN-LAST:event_txt_telKeyTyped
 

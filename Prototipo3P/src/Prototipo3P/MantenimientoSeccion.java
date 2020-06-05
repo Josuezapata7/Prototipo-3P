@@ -16,10 +16,37 @@ import javax.swing.table.DefaultTableModel;
  * @author Langas
  */
 public class MantenimientoSeccion extends javax.swing.JInternalFrame {
+String[] NombresColumnasSecciones = {"codigo_seccion" ,"nombre_seccion" ,"estatus_seccion"};
+    public void MostrarDB(String Tabla) {
+        String[] columnas = new String[3];
+        String query;
+        try {
 
+            Connection c = DriverManager.getConnection(Home.BD, Home.Usuario, Home.Contraseña);
+
+            query = "SELECT * FROM " + Tabla;
+
+            PreparedStatement consulta = c.prepareStatement(query);
+            ResultSet resultado = consulta.executeQuery();
+            DefaultTableModel md = new DefaultTableModel(null, NombresColumnasSecciones);
+
+            while (resultado.next()) {
+                for (int i = 0; i < 3; i++) {
+                    columnas[i] = resultado.getString(NombresColumnasSecciones[i]);
+                }
+                md.addRow(columnas);
+
+            }
+            tblSecciones.setModel(md);
+
+        } catch (Exception err) {
+            err.printStackTrace();
+        }
+
+    }
     public MantenimientoSeccion() {
         initComponents();
-     
+        MostrarDB("secciones");
     }
 
     /**
@@ -199,26 +226,117 @@ public class MantenimientoSeccion extends javax.swing.JInternalFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnBuscarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBuscarActionPerformed
-     
+        String buscar = txtbuscado.getText().trim();
+        if(buscar.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "¡No se ingreso el campo de busqueda!", "Advertencia", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        try{
+            Connection cn = DriverManager.getConnection(Home.BD,Home.Usuario,Home.Contraseña);
+            PreparedStatement pst = cn.prepareStatement("select * from secciones where codigo_seccion = ?");
+            pst.setString(1, txtbuscado.getText().trim());
+
+            ResultSet rs = pst.executeQuery();
+
+            if(rs.next()){
+                txt_id.setText(rs.getString("codigo_seccion"));
+                txt_nombre.setText(rs.getString("nombre_seccion"));
+                txt_estatus.setText(rs.getString("estatus_seccion"));
+
+                btnEliminar.setEnabled(true);
+                btnModificar.setEnabled(true);
+                txt_estatus.setEnabled(true);
+
+            } else {
+                JOptionPane.showMessageDialog(null, "seccion no registrado.");
+            }
+
+        }catch (Exception e){
+
+        }
 
         // TODO add your handling code here:
     }//GEN-LAST:event_btnBuscarActionPerformed
 
     private void btnEliminarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEliminarActionPerformed
-   
+        try {
+            Connection cn = DriverManager.getConnection(Home.BD,Home.Usuario,Home.Contraseña);
+            PreparedStatement pst = cn.prepareStatement("delete from secciones where codigo_seccion = ?");
+
+            pst.setString(1, txtbuscado.getText().trim());
+            pst.executeUpdate();
+            MostrarDB("secciones");
+
+            txtbuscado.setText("");
+
+            JOptionPane.showMessageDialog(this, "REGISTRO ELIMINADO.", "Exito", JOptionPane.INFORMATION_MESSAGE);
+            btnEliminar.setEnabled(false);
+            btnModificar.setEnabled(false);
+            txt_estatus.setEnabled(false);
+
+            txt_id.setText("");
+            txt_nombre.setText("");
+            txt_estatus.setText("");
+
+            txtbuscado.setText("");
+
+        }catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error en la eliminación de registros.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
 
         // TODO add your handling code here:
     }//GEN-LAST:event_btnEliminarActionPerformed
 
     private void btnRegistrarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRegistrarActionPerformed
 
-  
+        try{
+            Connection cn = DriverManager.getConnection(Home.BD,Home.Usuario,Home.Contraseña);
+            PreparedStatement pst = cn.prepareStatement("insert into secciones values(?,?,?)");
+
+            pst.setString(1, txt_id.getText().trim());
+            pst.setString(2, txt_nombre.getText().trim());
+            pst.setString(3, "A");
+
+            pst.executeUpdate();
+MostrarDB("secciones");
+            JOptionPane.showMessageDialog(this, "¡REGISTRO EXITOSO!", "Mensaje", JOptionPane.INFORMATION_MESSAGE);
+
+            txt_id.setText("");
+            txt_nombre.setText("");
+
+        }catch (Exception e){
+            JOptionPane.showMessageDialog(this, "¡REGITRO FALLIDO!", "Error", JOptionPane.ERROR_MESSAGE);
+
+        }
 
         // TODO add your handling code here:
     }//GEN-LAST:event_btnRegistrarActionPerformed
 
     private void btnModificarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnModificarActionPerformed
-      
+        try {
+            String codigo = txtbuscado.getText().trim();
+
+            Connection cn = DriverManager.getConnection(Home.BD,Home.Usuario,Home.Contraseña);
+            PreparedStatement pst = cn.prepareStatement("update secciones set nombre_seccion = ? ,estatus_seccion= ?  where codigo_seccion = " + codigo);
+
+            pst.setString(1, txt_nombre.getText().trim());
+            pst.setString(2, txt_estatus.getText().trim());
+            pst.executeUpdate();
+MostrarDB("secciones");
+            JOptionPane.showMessageDialog(this, "MODIFICACION EXITOSA.", "Exito", JOptionPane.INFORMATION_MESSAGE);
+
+            btnEliminar.setEnabled(false);
+            btnModificar.setEnabled(false);
+            txt_estatus.setEnabled(false);
+
+            txt_id.setText("");
+            txt_nombre.setText("");
+            txt_estatus.setText("");
+            txtbuscado.setText("");
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "NO SE PUDO MODIFICAR.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
 
         // TODO add your handling code here:
     }//GEN-LAST:event_btnModificarActionPerformed
